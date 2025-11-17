@@ -1,0 +1,85 @@
+* Links
+
+- [[https://github.com/openai/tiktoken][GH: tiktoken]]: "tiktoken is a fast [[https://en.wikipedia.org/wiki/Byte-pair_encoding][BPE]] tokeniser for use with OpenAI's models."
+- [[https://github.com/google/sentencepiece][GH: sentencepiece]]: "SentencePiece is an unsupervised text tokenizer and
+  detokenizer mainly for Neural Network-based text generation systems where the
+  vocabulary size is predetermined prior to the neural model training.
+  SentencePiece implements subword units (e.g., byte-pair-encoding (BPE)
+  [Sennrich et al.]) and unigram language model [Kudo.]) with the extension of
+  direct training from raw sentences. SentencePiece allows us to make a purely
+  end-to-end system that does not depend on language-specific
+  pre/postprocessing."
+
+* BPE
+
+#+begin_quote
+In computing, byte-pair encoding (BPE), or digram coding, is an algorithm, first
+described in 1994 by Philip Gage, for encoding strings of text into smaller
+strings by creating and using a translation table. A slightly modified version
+of the algorithm is used in large language model tokenizers.
+
+The original version of the algorithm focused on compression. It replaces the
+highest-frequency pair of bytes with a new byte that was not contained in the
+initial dataset. A lookup table of the replacements is required to rebuild the
+initial dataset. The modified version builds "tokens" (units of recognition)
+that match varying amounts of source text, from single characters (including
+single digits or single punctuation marks) to whole words (even long compound
+words).
+#+end_quote
+
+* Why does Karpathy use random locations
+
+Karpathy uses *random locations* for sampling training batches in his GPT model
+implementations (like minGPT/nanoGPT) for several key reasons related to
+*generalization* and *computational efficiency* of the training process.
+
+The line of code in the image:
+
+#+begin_src python
+ix = torch.randint(len(data) - block_size, (batch_size,))
+#+end_src
+
+This command randomly selects =batch_size= number of starting indices (=ix=)
+from the dataset (=data=). Each index represents the start of a sequence of
+length =block_size= that will form an individual input/target pair in the batch.
+
+** 🔑 Key Reasons for Random Sampling
+
+*** Generalisation and Reducing Data Correlation (Shuffling)
+
+- *Avoid Sequential Bias:* If the sequences were taken in a purely sequential
+  order (e.g., from index 0 to $B$, then $B$ to $2B$, etc.), the model could
+  learn patterns specific to the contiguous chunks of text. This is often poor
+  practice because it means the model is always seeing one specific context
+  after another.
+- *Representative Batches:* Randomly sampling ensures that each batch is a
+  *mini-representation* of the entire dataset. This is crucial for the
+  stochastic gradient descent (SGD) optimization algorithm. A random batch
+  provides an unbiased estimate of the overall training loss gradient, which
+  helps the model **generalize** better to unseen data and prevents it from
+  over-fitting to specific, local sequences in the data.
+
+*** Utilising All Data Points
+
+- *Full Context Coverage:* When training language models on large sequential
+  data (like a long text file), there are many overlapping possible
+  sub-sequences of the fixed length (`block_size`). Random sampling over the
+  entire dataset allows **every character/token** to be the starting point for a
+  sequence at some point during training. This maximises the utilization of the
+  training data.
+
+*** Stability and Noise for Optimisation
+
+- *Noise in the Gradient:* Using random, smaller batches (mini-batch SGD)
+  introduces a beneficial **stochasticity** (noise) into the gradient updates.
+  This noise helps the model escape sharp local minima in the loss landscape and
+  often leads to convergence in "flatter" minima, which are associated with
+  better *generalization* performance. If the batch contained the entire dataset
+  (full-batch GD), the update would be exact but could get stuck in a poor
+  minimum.
+
+** Summary
+
+In essence, the use of =torch.randint= is a standard and effective data loading
+technique to *shuffle* the data at the batch level, optimising for faster and
+more stable training convergence with better generalisation.
