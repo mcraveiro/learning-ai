@@ -1,5 +1,14 @@
 * Links
 
+- [[https://www.youtube.com/watch?v=kCc8FmEb1nY&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=8][Let's build GPT: from scratch, in code, spelled out.]]: Lecture we are currently
+  watching.
+- [[https://github.com/karpathy/nanochat][GH nanochat]]: "This repo is a full-stack implementation of an LLM like ChatGPT
+  in a single, clean, minimal, hackable, dependency-lite codebase. nanochat is
+  designed to run on a single 8XH100 node via scripts like speedrun.sh, that run
+  the entire pipeline start to end. This includes tokenization, pretraining,
+  finetuning, evaluation, inference, and web serving over a simple UI so that
+  you can talk to your own LLM just like ChatGPT."
+
 - [[https://github.com/openai/tiktoken][GH: tiktoken]]: "tiktoken is a fast [[https://en.wikipedia.org/wiki/Byte-pair_encoding][BPE]] tokeniser for use with OpenAI's models."
 - [[https://github.com/google/sentencepiece][GH: sentencepiece]]: "SentencePiece is an unsupervised text tokenizer and
   detokenizer mainly for Neural Network-based text generation systems where the
@@ -9,6 +18,10 @@
   direct training from raw sentences. SentencePiece allows us to make a purely
   end-to-end system that does not depend on language-specific
   pre/postprocessing."
+- [[https://github.com/karpathy/ng-video-lecture/tree/master][GH: ng-video-lecture:]] "Code created in the Neural Networks: Zero To Hero video
+  lecture series, specifically on the first lecture on nanoGPT. Publishing here
+  as a Github repo so people can easily hack it, walk through the git log
+  history of it, etc."
 
 * BPE
 
