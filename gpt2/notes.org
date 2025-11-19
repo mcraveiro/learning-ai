@@ -56,7 +56,7 @@ This command randomly selects =batch_size= number of starting indices (=ix=)
 from the dataset (=data=). Each index represents the start of a sequence of
 length =block_size= that will form an individual input/target pair in the batch.
 
-** 🔑 Key Reasons for Random Sampling
+** Key Reasons for Random Sampling
 
 *** Generalisation and Reducing Data Correlation (Shuffling)
 
@@ -96,3 +96,71 @@ length =block_size= that will form an individual input/target pair in the batch.
 In essence, the use of =torch.randint= is a standard and effective data loading
 technique to *shuffle* the data at the batch level, optimising for faster and
 more stable training convergence with better generalisation.
+
+* What are the Logits?
+
+In this context, logits are the raw, unnormalized prediction scores that the
+model outputs for every possible next token in the vocabulary.
+
+** The Output Tensor
+
+The line =logits = self.token_embedding_table(idx)= produces a tensor with the
+shape =(B, T, C)=:
+
+- *B (Batch Size)*: The number of independent sequences being processed
+  simultaneously (/e.g./, 4).
+- *T (Time/Block Length)*: The context length or sequence length (/e.g./, 8).
+- *C (Vocabulary Size)*: The total number of unique tokens / characters in your
+  dataset.
+
+For every single input token in your sequence, the model outputs a vector of
+length =C=, where each value is a score predicting how likely the corresponding
+token in the vocabulary is to be the next token.
+
+** The Bigram Mechanism
+
+In this specific Bigram model:
+
+- The =nn.Embedding= layer acts as both the input embedding and the output layer
+  (logits layer).
+- The embedding table has the shape =(vocab_size, vocab_size)=.
+
+When you pass an input index =idx= (a token index) into this table, it looks up
+the row corresponding to that token.
+
+That retrieved row is the vector of raw scores (logits) for the next possible
+token. Essentially, the model is learning the simple probability of any token C
+following the current token =i= directly from a lookup table.
+
+** How Logits are Used
+
+*** Training (The forward function)
+
+The logits are converted into a loss value:
+
+- *Reshaping*: The =(B, T, C)= logits tensor and the =(B, T)= targets tensor are
+  flattened into =(B*T, C)= and =(B*T)= respectively. This pools all independent
+  predictions across the batch and time steps.
+
+- *Cross Entropy*: The function =F.cross_entropy(logits, targets)= is applied.
+  This function does two things internally:
+
+  - It applies the Softmax function to the logits to convert them into
+    probabilities (where all probabilities sum to 1).
+  - It calculates the negative log-likelihood loss between these probabilities
+    and the true targets. The model uses this loss to adjust its weights (the
+    embedding table) via backpropagation.
+
+*** Inference/Generation (The generate function)
+
+The logits are converted into a next token prediction:
+
+Focus on *Last Token*: =logits = logits[:, -1, :]= selects only the prediction
+for the very last token in the context, as that's the only one relevant for
+predicting the new token.
+
+- *Softmax*: =probs = F.softmax(logits, dim=-1)= converts the raw scores
+  (logits) into a proper probability distribution.
+- *Sampling*: =idx_next = torch.multinomial(probs, num_samples=1)= samples the
+  next token index from this probability distribution, introducing an element of
+  randomness (creativity) into the generation.
